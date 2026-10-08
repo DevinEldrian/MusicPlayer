@@ -39,6 +39,20 @@ dialog{width:min(565px,92vw);background:linear-gradient(155deg,#1b2430,#11171e);
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 .ico{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
+
+/* Melo Vault — authenticated personal music cloud */
+.vault-card{margin:10px 2px 12px;padding:15px;border:1px solid #90ffe033;background:linear-gradient(135deg,#172e32,#15152b);border-radius:17px;display:grid;gap:8px}
+.vault-card .vault-kicker{color:var(--mint);font-size:10px;letter-spacing:1.6px;text-transform:uppercase;font-weight:900}
+.vault-card strong{font-size:15px;overflow-wrap:anywhere}.vault-card small{color:#a1b5c2;font-size:11px;line-height:1.45}.vault-card button{padding:9px 10px;border-radius:10px;background:var(--mint);color:#112820;font-size:11px;font-weight:800}
+.vault-card .secondary-vault{border:1px solid #a1ffe03a;background:transparent;color:var(--mint)}
+.vault-card .vault-actions{display:flex;gap:6px;flex-wrap:wrap}.vault-card .vault-actions button{flex:1}
+.vault-card .vault-disabled{opacity:.76}
+.vault-badge{color:var(--mint);font-weight:900;font-size:10px;letter-spacing:.7px;text-transform:uppercase}
+.header-btn.vault-upload{background:#99ffe11e;border-color:#9dffe444;color:#a4ffe8}
+.vault-progress{display:flex;gap:10px;align-items:center;color:var(--mint);font-size:12px;font-weight:700;padding:8px 13px;border-radius:12px;background:#87ffe817;border:1px solid #80ffe131}
+.vault-progress[hidden]{display:none!important}
+.auth-dialog{max-width:440px;width:min(94vw,440px)}.auth-dialog h2{font-size:24px;letter-spacing:-.8px;margin:3px 0 7px}.auth-dialog p{font-size:12px;color:#aab6ca;line-height:1.6}.auth-dialog form{display:grid;gap:10px;margin-top:16px}.auth-dialog input{width:100%;padding:13px;border-radius:11px;border:1px solid #ffffff22;background:#090f18;color:white}.auth-dialog label{font-weight:700;color:#b7c5d0;font-size:11px}.auth-dialog .auth-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.auth-dialog .auth-actions button{padding:10px 13px;border-radius:11px;border:1px solid #ffffff24;font-size:12px;font-weight:700}.auth-dialog .auth-actions .pri{background:var(--mint);color:#0c261e;border-color:transparent}.auth-dialog .error{color:#ff9ba3;font-size:12px;min-height:15px}
+@media(max-width:770px){.vault-card{display:none}.header-btn.vault-upload{padding:0 10px}.top-actions{flex-wrap:wrap}.top-actions .vault-progress{width:100%}.auth-dialog{max-height:90vh;overflow-y:auto}}
 </style>
 </head>
 <body>
@@ -68,8 +82,16 @@ dialog{width:min(565px,92vw);background:linear-gradient(155deg,#1b2430,#11171e);
     <button data-v="fav" title="Favorit"><svg class="ico"><use href="#i-heart"/></svg><span>Favorit Saya</span></button>
     <button data-v="top" title="Sering Diputar"><svg class="ico"><use href="#i-trend"/></svg><span>Sering Diputar</span></button>
     <button data-v="nolyr" title="Tanpa Lirik"><svg class="ico"><use href="#i-list"/></svg><span>Tanpa Lirik</span></button>
+    <button data-v="private" title="Musik Cloud"><svg class="ico"><use href="#i-cloud"/></svg><span>Private Cloud</span></button>
   </nav>
   <div class="side-space"></div>
+  <section class="vault-card" id="vaultCard" aria-label="Pustaka cloud pribadi">
+    <span class="vault-kicker">☁ Melo Private Vault</span>
+    <strong id="vaultIdentity">Belum terhubung</strong>
+    <small id="vaultStatus">Login untuk upload, sinkronisasi, dan streaming dari semua perangkat.</small>
+    <div class="vault-actions"><button id="vaultLogin">Login / Daftar</button><button class="secondary-vault" id="vaultLogout" hidden>Keluar</button></div>
+    <button class="secondary-vault" id="vaultSync" hidden>⇧ Backup semua lagu lokal</button>
+  </section>
   <section class="side-card"><span class="tiny">Your personal vault</span><strong>Musikmu.<br>Duniamu.</strong><p>Simpan musik secara lokal atau nikmati streaming koleksi dari pustaka online.</p><button id="cloudHelp">Cara pustaka online ↗</button></section>
   <div class="db"><span class="dot" id="dbDot"></span><b id="dbTxt">Memuat pustaka…</b><br>Penyimpanan perangkat: <b id="dbUse">—</b></div>
 </aside>
@@ -78,10 +100,13 @@ dialog{width:min(565px,92vw);background:linear-gradient(155deg,#1b2430,#11171e);
     <div class="breadcrumbs">Your space &nbsp; / &nbsp; <strong>Beranda</strong></div>
     <div class="top-actions">
       <label class="searchbox"><svg class="ico"><use href="#i-search"/></svg><input class="search" id="q" placeholder="Cari lagu, artis, album…" aria-label="Cari lagu"/></label>
+      <button class="header-btn vault-upload" id="vaultUpload" title="Upload langsung ke cloud privat">☁ <span class="label-desktop">Upload Cloud</span></button>
+      <button class="header-btn" id="vaultAccount" title="Akun Melo Vault">♙ <span class="label-desktop">Login</span></button>
       <button class="header-btn" id="cloudBtn" title="Tambah tautan streaming"><svg class="ico"><use href="#i-cloud"/></svg><span class="label-desktop">Tambah URL</span></button>
       <button class="header-btn primary" id="addBtn"><svg class="ico"><use href="#i-plus"/></svg><span class="label-desktop">Tambah Musik</span></button>
     </div>
   </header>
+  <div class="vault-progress" id="vaultProgress" hidden role="status" aria-live="polite"></div>
   <section class="hero-banner" aria-label="Selamat datang">
     <div class="hero-copy"><div class="eyebrow">The next level of listening</div><h2>Sound <em>without limits.</em></h2><p>Rasakan musik dengan cara baru. Hi-res ready, lirik sinkron, dan seluruh koleksimu dalam satu tempat.</p></div>
     <div class="hero-decoration" aria-hidden="true"><span style="--h:30%;--delay:-.6s"></span><span style="--h:46%;--delay:-.1s"></span><span style="--h:69%;--delay:-.8s"></span><span style="--h:92%;--delay:-.5s"></span><span style="--h:61%;--delay:-.15s"></span><span style="--h:37%;--delay:-.95s"></span><span style="--h:100%;--delay:-.4s"></span><span style="--h:78%;--delay:-.7s"></span><span style="--h:55%;--delay:-.25s"></span><span style="--h:96%;--delay:-.8s"></span><span style="--h:43%;--delay:-.2s"></span><span style="--h:72%;--delay:-.9s"></span><span style="--h:26%;--delay:-.35s"></span><span style="--h:57%;--delay:-.65s"></span><span style="--h:34%;--delay:-.1s"></span></div>
@@ -121,12 +146,24 @@ dialog{width:min(565px,92vw);background:linear-gradient(155deg,#1b2430,#11171e);
 </div>
 <div class="dock" aria-label="Mini player"><div class="dock-track"><div class="dock-cover" id="dockCover">♫</div><div class="dock-track-text"><b id="dockTitle">Belum ada lagu</b><small id="dockArtist">Melo Player</small></div></div><div class="dock-main"><button id="dockPrev" aria-label="Lagu sebelumnya"><svg class="ico"><use href="#i-back"/></svg></button><button class="dock-play" id="dockPlay" aria-label="Putar">▶</button><button id="dockNext" aria-label="Lagu berikutnya"><svg class="ico"><use href="#i-forward"/></svg></button></div><div class="dock-end"><svg class="ico"><use href="#i-volume"/></svg><span id="dockTime">0:00 / 0:00</span></div><div class="dock-progress"><i id="dockProgress"></i></div></div>
 <input id="file" type="file" accept="audio/*,.flac,.mp3,.m4a,.wav,.ogg,.opus,.aac,.lrc" multiple hidden>
+<input id="vaultFiles" type="file" accept="audio/*,.mp3,.flac,.m4a,.wav,.ogg,.opus,.aac" multiple hidden>
 <input id="lrcFile" type="file" accept=".lrc,.txt" hidden>
 <audio id="au" preload="metadata"></audio><div id="toast" role="status" aria-live="polite"></div>
+<dialog id="authDialog" class="auth-dialog">
+  <h2>☁ Melo Private Vault</h2><p>Musik hanya dapat dibuka oleh akunmu. Login di HP atau PC lain untuk memuat koleksi yang sama.</p>
+  <form id="authForm" autocomplete="on">
+    <label for="authEmail">Email</label><input id="authEmail" type="email" required autocomplete="email" placeholder="email@contoh.com">
+    <label for="authPassword">Password (minimum 6 karakter)</label><input id="authPassword" type="password" minlength="6" required autocomplete="current-password" placeholder="••••••••">
+    <div class="error" id="authMessage" aria-live="polite"></div>
+    <div class="auth-actions"><button type="submit" class="pri" id="authSubmit">Masuk</button><button type="button" id="authRegister">Daftar</button><button type="button" id="authForgot">Lupa password</button><button type="button" id="authClose">Tutup</button></div>
+  </form>
+</dialog>
 <dialog id="dlg"><b>Lirik lagu</b><p>Gunakan format LRC <code>[mm:ss.xx]</code> untuk lirik yang bergerak sesuai lagu, atau gunakan teks biasa.</p><textarea id="ta" spellcheck="false" aria-label="Teks lirik"></textarea><div class="row"><button class="pill" id="dCancel">Batal</button><button class="pill pri" id="dSave">Simpan Lirik</button></div></dialog>
 <dialog id="cloudDlg"><b>Tambah Lagu dari URL</b><p>Masukkan tautan langsung file audio (MP3/FLAC/WAV) yang dapat diakses browser. Tautan disimpan di perangkat ini. Untuk berbagi koleksi antarperangkat, gunakan manifest pustaka online.</p><form id="cloudForm"><label for="cloudUrl">URL audio *</label><input id="cloudUrl" type="url" required placeholder="https://example.com/music/song.mp3"><div class="field-row"><div><label for="cloudTitle">Judul *</label><input id="cloudTitle" required placeholder="Judul lagu"></div><div><label for="cloudArtist">Artis</label><input id="cloudArtist" placeholder="Nama artis"></div></div><label for="cloudAlbum">Album</label><input id="cloudAlbum" placeholder="Nama album"><label for="cloudCover">URL cover (opsional)</label><input id="cloudCover" placeholder="https://example.com/cover.jpg"><div class="row"><button class="pill" type="button" id="cloudCancel">Batal</button><button class="pill pri" type="submit">Simpan & Putar</button></div></form></dialog>
 <dialog id="helpDlg"><b>Musik online lintas perangkat</b><p>Lagu yang disimpan di browser menggunakan IndexedDB, sehingga tidak otomatis berpindah ke perangkat lain.</p><div class="help-list"><ol><li>Klik <strong>Paket Online ↓</strong> untuk membuat ZIP berisi lagu-lagu lokal dan <code>library.json</code>.</li><li>Ekstrak ZIP, lalu upload isi folder <code>music/</code> ke folder <code>docs/music/</code> di repository GitHub.</li><li>Refresh situs GitHub Pages. Semua perangkat dapat memutar lagu dari manifest tersebut.</li></ol></div><p>Penting: GitHub Pages bersifat publik. Hanya unggah musik yang kamu punya hak untuk membagikannya.</p><div class="row"><button class="pill pri" id="helpClose">Mengerti</button></div></dialog>
 
+<script src="./cloud-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <script>
 
 const $=id=>document.getElementById(id);
@@ -146,7 +183,9 @@ function openDB(){return new Promise(res=>{try{const r=indexedDB.open('melo-play
   r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);r.onblocked=()=>res(null)}catch(e){res(null)}})}
 const dbAll=()=>new Promise(res=>{const r=db.transaction('songs').objectStore('songs').getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>res([])});
 const TMP=['url','coverUrl','triedAuto'];
-function dbPut(s,quiet){return new Promise(res=>{if(!db)return res();const rec={};for(const k in s)if(!TMP.includes(k))rec[k]=s[k];
+function dbPut(s,quiet){
+ if(s?.source==='private')return savePrivateMeta(s,quiet);
+ return new Promise(res=>{if(!db)return res();const rec={};for(const k in s)if(!TMP.includes(k))rec[k]=s[k];
   try{const tx=db.transaction('songs','readwrite'),r=tx.objectStore('songs').put(rec);
     r.onsuccess=()=>{if(!s.id)s.id=r.result};
     tx.oncomplete=()=>{if(!quiet)flash('✓ Tersimpan di database');res()};
@@ -213,7 +252,7 @@ async function addFiles(files){
   if(added)flash('✓ '+added+' lagu tersimpan di database');
   render();dbBadge();if(cur<0&&songs.length)load(0,false)}
 const list=()=>{const q=$('q').value.toLowerCase();
-  let L=songs.map((s,i)=>({s,i})).filter(({s})=>(!q||(s.title+' '+s.artist+' '+s.album).toLowerCase().includes(q))&&(view==='fav'?s.fav:view==='nolyr'?!s.lrc:view==='top'?s.plays>0:true));
+  let L=songs.map((s,i)=>({s,i})).filter(({s})=>(!q||(s.title+' '+s.artist+' '+s.album).toLowerCase().includes(q))&&(view==='fav'?s.fav:view==='nolyr'?!s.lrc:view==='top'?s.plays>0:view==='private'?s.source==='private':true));
   if(view==='top')L.sort((a,b)=>b.s.plays-a.s.plays);return L};
 function render(){
   const L=list();$('count').textContent=`${songs.length} lagu`; renderStats();
@@ -228,14 +267,18 @@ function render(){
     li.querySelector('.al').textContent=s.album;li.querySelector('.pc').textContent=(s.plays||0)+'×';
     li.querySelector('.d').textContent=s.dur?fmt(s.dur):'';
     const f=li.querySelector('.f');f.textContent=s.fav?'♥':'♡';f.classList.toggle('on',s.fav);
-    f.onclick=e=>{e.stopPropagation();s.fav=!s.fav;dbPut(s,true);render()};
+    f.onclick=async e=>{e.stopPropagation();s.fav=!s.fav;await dbPut(s,true);render()};
     li.querySelector('.x').onclick=async e=>{e.stopPropagation();if(!confirm('Hapus "'+s.title+'" dari database?'))return;
-      await dbDel(s.id);if(s.blob&&s.url)URL.revokeObjectURL(s.url);if(s.coverUrl)URL.revokeObjectURL(s.coverUrl);songs.splice(i,1);
+      if(s.source==='private'){
+        try{await deletePrivateSong(s)}catch(err){flash('Gagal hapus cloud: '+err.message,true);return}
+      } else await dbDel(s.id);
+      if(s.blob&&s.url?.startsWith('blob:'))URL.revokeObjectURL(s.url);
+      if(s.coverUrl?.startsWith('blob:'))URL.revokeObjectURL(s.coverUrl);songs.splice(i,1);
       if(i===cur){au.pause();au.removeAttribute('src');cur=-1;resetNow()}else if(i<cur)cur--;render();dbBadge()};
     li.onclick=()=>load(i,true);ul.appendChild(li)})}
 function renderStats(){
   const tp=songs.reduce((a,s)=>a+(s.plays||0),0),tl=songs.reduce((a,s)=>a+(s.listen||0),0),top=[...songs].sort((a,b)=>b.plays-a.plays)[0];
-  $('stats').innerHTML=`<div><small>Lagu</small><b>${songs.length}</b></div><div><small>Favorit</small><b>${songs.filter(s=>s.fav).length}</b></div><div><small>Total putar</small><b>${tp}×</b></div><div><small>Online</small><b>${songs.filter(s=>s.source==='cloud').length}</b></div><div><small>Lirik</small><b>${songs.filter(s=>s.lrc).length}</b></div><div><small>Dengar</small><b>${long(tl)}</b></div>`}
+  $('stats').innerHTML=`<div><small>Lagu</small><b>${songs.length}</b></div><div><small>Favorit</small><b>${songs.filter(s=>s.fav).length}</b></div><div><small>Total putar</small><b>${tp}×</b></div><div><small>Online</small><b>${songs.filter(s=>s.source==='cloud'||s.source==='private').length}</b></div><div><small>Lirik</small><b>${songs.filter(s=>s.lrc).length}</b></div><div><small>Dengar</small><b>${long(tl)}</b></div>`}
 function resetNow(){$('title').textContent='Your next favorite song';$('sub').textContent='Tambahkan musik untuk memulai perjalanan';$('badges').innerHTML='<span class="bd">HI-RES READY</span>';$('cover').style.background='linear-gradient(140deg,#563b88,#1b7072)';$('cover').textContent='♪';document.documentElement.style.removeProperty('--amb');setLyrics('');info();syncDock()}
 function info(){const s=songs[cur],el=$('info');if(!s){el.innerHTML='<div class="msg" style="grid-column:1/-1">Pilih lagu untuk melihat datanya.</div>';return}
   const sz=s.blob?.size||0,br=s.dur&&sz?Math.round(sz*8/s.dur/1000):0;
@@ -243,16 +286,23 @@ function info(){const s=songs[cur],el=$('info');if(!s){el.innerHTML='<div class=
     ['Kualitas',s.sr?`${(s.sr/1000).toFixed(1)} kHz${s.bits?' · '+s.bits+'-bit':''}${s.ch?' · '+(s.ch>1?'Stereo':'Mono'):''}`:'—'],['Bitrate rata-rata',br?br+' kbps':'—'],['Ukuran',sz?(sz/1048576).toFixed(2)+' MB':'Streaming'],['Durasi',fmt(s.dur)],
     ['Diputar',(s.plays||0)+'×'],['Total didengar',long(s.listen||0)],['Terakhir diputar',s.last?new Date(s.last).toLocaleString('id-ID'):'Belum pernah'],['Ditambahkan',new Date(s.added).toLocaleDateString('id-ID')],['Lirik',s.lrc?(parseLRC(s.lrc).synced?'Tersinkron':'Teks biasa'):'Belum ada'],['File',s.file||'—']];
   el.innerHTML=r.map(([k,v])=>`<div><small>${k}</small><b>${esc(v)}</b></div>`).join('')}
-function load(n,go){
-  const s=songs[n];if(!s||!s.url)return flash('URL audio tidak tersedia',true);cur=n;au.src=s.url;counted=false;loadListen=0;lastT=0;
+async function load(n,go){
+  const s=songs[n];if(!s)return;cur=n;const nonce=++privateLoadNonce;
+  if(s.source==='private'){
+    au.pause();au.removeAttribute('src');
+    try{await refreshPrivateAudio(s);if(nonce!==privateLoadNonce||songs[cur]!==s)return;}
+    catch(err){if(nonce===privateLoadNonce)flash('Akses lagu privat gagal: '+err.message,true);return;}
+  }
+  if(!s.url)return flash('URL audio tidak tersedia',true);
+  au.src=s.url;counted=false;loadListen=0;lastT=0;
   $('title').textContent=s.title;$('sub').textContent=[s.artist||'Artis tidak diketahui',s.album].filter(Boolean).join(' · ');
   const bg=artBg(s),c=$('cover');c.style.background=bg;c.textContent=s.coverUrl?'':(s.title[0]||'♪').toUpperCase();
   document.documentElement.style.setProperty('--amb',bg);syncDock();
-  $('badges').innerHTML=[s.fmt,s.sr?(s.sr/1000).toFixed(1)+' kHz':'',s.bits?s.bits+'-bit':''].filter(Boolean).map(x=>`<span class="bd">${x}</span>`).join('')+(s.fmt==='FLAC'?'<span class="bd ll">LOSSLESS</span>':'')+(s.source==='cloud'?'<span class="bd cloud">ONLINE</span>':'<span class="bd">LOCAL</span>');
+  $('badges').innerHTML=[s.fmt,s.sr?(s.sr/1000).toFixed(1)+' kHz':'',s.bits?s.bits+'-bit':''].filter(Boolean).map(x=>`<span class="bd">${x}</span>`).join('')+(s.fmt==='FLAC'?'<span class="bd ll">LOSSLESS</span>':'')+(s.source==='private'?'<span class="bd cloud">PRIVATE ☁</span>':s.source==='cloud'?'<span class="bd cloud">ONLINE</span>':'<span class="bd">LOCAL</span>');
   document.title=s.title+' — Melo';
   if('mediaSession'in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:s.title,artist:s.artist,album:s.album,artwork:coverUrl(s)?[{src:coverUrl(s),sizes:'512x512'}]:[]})}catch(e){}}
   setLyrics(s.lrc);info();if(go)au.play().catch(()=>flash('Audio tidak dapat diputar. Periksa URL/format atau izin akses.'));render();syncDock();
-  if(!s.lrc&&!s.triedAuto){s.triedAuto=true;getLyrics(true)}}
+  if(!s.lrc&&!s.triedAuto&&s.source!=='private'){s.triedAuto=true;getLyrics(true)}}
 
 /* ---------- Lirik ---------- */
 function parseLRC(t){const out=[];let any=false;
@@ -288,12 +338,13 @@ function draw(t=0){requestAnimationFrame(draw);const dpr=Math.min(devicePixelRat
  $('cover').style.transform=playing?'scale('+(1+.008*Math.sin(t*.002))+')':'scale(1)';}
 requestAnimationFrame(draw);
 function step(d){if(!songs.length)return;let n=shuffle&&songs.length>1?(()=>{let r;do r=Math.floor(Math.random()*songs.length);while(r===cur);return r})():(cur+d+songs.length)%songs.length;load(n,true)}
-$('play').onclick=()=>{if(cur<0){$('file').click();return;}au.paused?au.play().catch(()=>flash('File atau tautan audio tidak dapat dibuka')):au.pause()};
+$('play').onclick=()=>{if(cur<0){$('file').click();return;}if(au.paused&&songs[cur]?.source==='private'&&(!songs[cur].url||Date.now()>songs[cur].signedUntil))return load(cur,true);
+ au.paused?au.play().catch(()=>flash('File atau tautan audio tidak dapat dibuka')):au.pause()};
 $('next').onclick=()=>step(1);$('prev').onclick=()=>{au.currentTime>3?au.currentTime=0:step(-1)};
 $('shuf').onclick=e=>{shuffle=!shuffle;e.currentTarget.classList.toggle('on',shuffle)};
 $('rep').onclick=e=>{repeat=(repeat+1)%3;const b=e.currentTarget;b.classList.toggle('on',repeat>0);b.textContent=repeat===2?'↻¹':'↻';b.title='Ulang: '+['mati','semua','satu'][repeat]};
 $('vol').oninput=e=>au.volume=e.target.value/100;au.volume=.8;
-if('mediaSession'in navigator)[['play',()=>au.play()],['pause',()=>au.pause()],['nexttrack',()=>step(1)],['previoustrack',()=>step(-1)]].forEach(([a,f])=>{try{navigator.mediaSession.setActionHandler(a,f)}catch(e){}});
+if('mediaSession'in navigator)[['play',()=>songs[cur]?.source==='private'&&Date.now()>songs[cur].signedUntil?load(cur,true):au.play()],['pause',()=>au.pause()],['nexttrack',()=>step(1)],['previoustrack',()=>step(-1)]].forEach(([a,f])=>{try{navigator.mediaSession.setActionHandler(a,f)}catch(e){}});
 au.onplay=()=>{app.classList.add('playing');$('play').innerHTML='<svg class="ico"><use href="#i-pause"/></svg>';$('play').setAttribute('aria-label','Jeda');lastT=au.currentTime;render();syncDock()};
 au.onpause=()=>{app.classList.remove('playing');$('play').innerHTML='<svg class="ico"><use href="#i-play"/></svg>';$('play').setAttribute('aria-label','Putar');const s=songs[cur];if(s)dbPut(s,true);render();syncDock()};
 au.onloadedmetadata=()=>{$('dur').textContent=fmt(au.duration);const s=songs[cur];
@@ -339,7 +390,7 @@ function syncDock(){const s=songs[cur];$('dockTitle').textContent=s?s.title:'Bel
  $('dockTime').textContent=fmt(au.currentTime)+' / '+fmt(au.duration);$('dockProgress').style.width=(au.duration&&Number.isFinite(au.duration)?Math.min(100,au.currentTime/au.duration*100):0)+'%'}
 $('dockPlay').onclick=()=>$('play').click();$('dockPrev').onclick=()=>$('prev').click();$('dockNext').onclick=()=>$('next').click();
 $('cloudBtn').onclick=()=>$('cloudDlg').showModal();$('cloudCancel').onclick=()=>$('cloudDlg').close();
-$('cloudHelp').onclick=()=>$('helpDlg').showModal();$('helpClose').onclick=()=>$('helpDlg').close();
+$('cloudHelp').onclick=()=>{if(cloudClient)openAuthDialog();else $('helpDlg').showModal()};$('helpClose').onclick=()=>$('helpDlg').close();
 $('cloudForm').onsubmit=async e=>{e.preventDefault();const remoteUrl=safeUrl($('cloudUrl').value.trim());if(!remoteUrl)return flash('URL tidak valid. Gunakan https:// atau http://',true);
  if(location.protocol==='https:'&&remoteUrl.startsWith('http:'))return flash('URL audio harus HTTPS pada situs HTTPS',true);
  let title=$('cloudTitle').value.trim(),artist=$('cloudArtist').value.trim(),album=$('cloudAlbum').value.trim(),coverRemote=$('cloudCover').value.trim()?safeUrl($('cloudCover').value.trim()):null;
@@ -388,6 +439,208 @@ $('exportCloud').onclick=async()=>{const tracks=songs.filter(s=>s.blob);if(!trac
  const blob=await zipFiles(files);downloadBlob(blob,'melo-cloud-library.zip');flash('Paket online siap! Ekstrak dan upload folder music ke docs/.')
  }catch(e){console.error(e);flash('Pembuatan ZIP gagal: '+e.message,true)}finally{button.disabled=false;button.textContent='Paket Online ↓'}};
 
+/* ---------- Melo Private Vault: Supabase Auth + private Storage ---------- */
+const PRIVATE_BUCKET='melo-private';
+let cloudClient=null,cloudUser=null,privateLoadNonce=0,privateSyncNonce=0,privateBusy=false,privatePolling=null;
+const cloudSettings=window.MELO_CLOUD_CONFIG||{};
+function cloudConfigured(){
+  return /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(String(cloudSettings.url||''))
+    && /^(sb_publishable_[a-zA-Z0-9_-]+|eyJ[a-zA-Z0-9_\-\.]+)$/.test(String(cloudSettings.publishableKey||''));
+}
+function vaultProgress(message=''){$('vaultProgress').hidden=!message;$('vaultProgress').textContent=message}
+function updateVaultStatus(){
+ const logged=!!cloudUser;
+ $('vaultIdentity').textContent=logged?cloudUser.email:(cloudClient?'Akun belum login':'Cloud belum dikonfigurasi');
+ $('vaultStatus').textContent=logged?'Pustaka pribadi terhubung · akses hanya untuk akunmu':cloudClient?'Login untuk sync koleksi dan streaming di perangkat lain.':'Admin perlu memasukkan URL & publishable key Supabase.';
+ $('vaultLogin').textContent=logged?'Akun tersambung':'Login / Daftar';
+ $('vaultLogout').hidden=!logged;$('vaultSync').hidden=!logged;
+ $('vaultUpload').disabled=!logged;$('vaultUpload').title=logged?'Upload file ke penyimpanan privat':'Login dulu untuk upload cloud';
+ $('vaultAccount').querySelector('span').textContent=logged?'Akun Saya':'Login';
+}
+function openAuthDialog(){
+ if(!cloudClient){flash('Cloud belum dikonfigurasi. Buka panduan MELO_PRIVATE_SETUP.md.',true);return}
+ $('authMessage').textContent=cloudUser?'Kamu sudah login sebagai '+cloudUser.email:'';
+ if(!$('authDialog').open)$('authDialog').showModal();
+}
+$('vaultLogin').onclick=openAuthDialog;
+$('vaultAccount').onclick=openAuthDialog;
+$('authClose').onclick=()=>$('authDialog').close();
+$('authForm').onsubmit=async event=>{event.preventDefault();if(!cloudClient)return;
+ const email=$('authEmail').value.trim(),password=$('authPassword').value;
+ const b=$('authSubmit');b.disabled=true;$('authMessage').textContent='Menghubungkan akun…';
+ try{const {error}=await cloudClient.auth.signInWithPassword({email,password});if(error)throw error;
+ $('authDialog').close();$('authPassword').value='';flash('✓ Login berhasil');}
+ catch(err){$('authMessage').textContent=err.message||'Login gagal';}finally{b.disabled=false}
+};
+$('authRegister').onclick=async()=>{if(!cloudClient)return;
+ const email=$('authEmail').value.trim(),password=$('authPassword').value;
+ if(!email||password.length<6)return $('authMessage').textContent='Isi email dan password minimal 6 karakter.';
+ $('authRegister').disabled=true;$('authMessage').textContent='Membuat akun…';
+ try{const {data,error}=await cloudClient.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
+ if(error)throw error;
+ $('authMessage').textContent=data.session?'Akun berhasil dibuat dan login.':'Cek inbox email untuk verifikasi akun, lalu login.';
+ if(data.session){$('authDialog').close();$('authPassword').value='';}}
+ catch(err){$('authMessage').textContent=err.message||'Pendaftaran gagal';}finally{$('authRegister').disabled=false}
+};
+$('authForgot').onclick=async()=>{if(!cloudClient)return;
+ const email=$('authEmail').value.trim();if(!email)return $('authMessage').textContent='Masukkan email terlebih dahulu.';
+ $('authForgot').disabled=true;
+ try{const {error}=await cloudClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error)throw error;
+ $('authMessage').textContent='Jika email terdaftar, link reset akan dikirim ke email.';}
+ catch(err){$('authMessage').textContent=err.message||'Gagal mengirim reset password';}finally{$('authForgot').disabled=false}
+};
+$('vaultLogout').onclick=async()=>{if(!cloudClient)return;try{const {error}=await cloudClient.auth.signOut();if(error)throw error;flash('Keluar dari Private Vault')}catch(err){flash(err.message,true)}};
+function clearPrivateSongs(){
+ ++privateLoadNonce;++privateSyncNonce;
+ const current=songs[cur];
+ if(current?.source==='private'){au.pause();au.removeAttribute('src');cur=-1;resetNow();}
+ const before=songs.slice(0,cur>=0?cur:0).filter(s=>s.source==='private').length;
+ songs=songs.filter(s=>s.source!=='private');if(cur>=0)cur=Math.max(0,cur-before);
+ if(!songs.length){cur=-1;resetNow()}else if(cur<0)load(0,false);
+ render();
+}
+function mapPrivateSong(r){return{
+ id:'vault:'+r.id,cloudId:r.id,ownerUid:r.owner_id,source:'private',cloudPath:r.file_path,coverPath:r.cover_path||'',
+ title:r.title,artist:r.artist||'',album:r.album||'',file:r.original_name||'',fmt:r.format||'',
+ genre:r.genre||'',year:r.release_year||'',lrc:r.lyrics||'',fav:!!r.is_favorite,
+ plays:r.play_count||0,listen:r.listen_seconds||0,last:r.played_at?Date.parse(r.played_at):0,
+ dur:r.duration||0,size:r.file_size||0,url:'',signedUntil:0,added:Date.parse(r.created_at)||Date.now()};}
+async function signedPrivate(path,expires=3600){
+ if(!cloudClient||!cloudUser)throw new Error('Silakan login ulang.');
+ if(!path.startsWith(cloudUser.id+'/'))throw new Error('Path file bukan milik akun ini.');
+ const {data,error}=await cloudClient.storage.from(PRIVATE_BUCKET).createSignedUrl(path,expires);
+ if(error)throw error;return data.signedUrl;
+}
+async function refreshPrivateAudio(song){
+ if(!cloudUser||song.ownerUid!==cloudUser.id)throw new Error('Login sesuai pemilik koleksi.');
+ // Reissue signed URL when selecting a track, so a paused song from yesterday also works.
+ song.url=await signedPrivate(song.cloudPath,3600);song.signedUntil=Date.now()+3500000;
+}
+async function refreshPrivateSongs(){
+ if(!cloudClient||!cloudUser||privateBusy)return;
+ const uid=cloudUser.id,epoch=++privateSyncNonce;
+ try{const {data,error}=await cloudClient.from('melo_tracks').select('*').eq('owner_id',uid).order('created_at',{ascending:false}).limit(1000);
+  if(error)throw error;
+  if(!cloudUser||uid!==cloudUser.id||epoch!==privateSyncNonce)return;
+  const old=new Map(songs.filter(s=>s.source==='private').map(s=>[s.cloudId,s]));
+  const next=data.map(row=>{const v=mapPrivateSong(row),prev=old.get(v.cloudId);
+    if(prev){v.url=prev.url;v.signedUntil=prev.signedUntil;v.coverRemote=prev.coverRemote;v.coverSignedUntil=prev.coverSignedUntil;}
+    return v;});
+  // Signed artwork is also private, and short-lived.
+  await Promise.all(next.filter(s=>s.coverPath&&(!s.coverRemote||Date.now()>s.coverSignedUntil)).slice(0,50).map(async song=>{
+    try{song.coverRemote=await signedPrivate(song.coverPath,3600);song.coverSignedUntil=Date.now()+3500000}catch(e){console.warn('Private cover unavailable',e)}
+  }));
+  if(!cloudUser||uid!==cloudUser.id||epoch!==privateSyncNonce)return;
+  const active=songs[cur];const base=songs.filter(s=>s.source!=='private');
+  songs=[...base,...next];cur=active?songs.findIndex(s=>s.source==='private'?s.cloudId===active.cloudId:s===active):-1;
+  if(cur<0&&active?.source==='private'){au.pause();au.removeAttribute('src');resetNow();}
+  if(cur<0&&songs.length){cur=-1;load(0,false)}
+  render();info();syncDock();
+ }catch(err){console.error('Melo Vault sync:',err);flash('Sinkronisasi cloud gagal: '+err.message,true)}
+}
+async function savePrivateMeta(song,quiet){
+ if(!cloudClient||!cloudUser||song.ownerUid!==cloudUser.id)return;
+ const payload={is_favorite:!!song.fav,lyrics:song.lrc||'',duration:Number(song.dur)||0,play_count:Math.max(0,song.plays||0),listen_seconds:Math.max(0,song.listen||0),played_at:song.last?new Date(song.last).toISOString():null};
+ const {error}=await cloudClient.from('melo_tracks').update(payload).eq('id',song.cloudId).eq('owner_id',cloudUser.id);
+ if(error){console.warn('Melo Vault metadata:',error);if(!quiet)flash('Gagal sync metadata: '+error.message,true)}
+}
+async function deletePrivateSong(song){
+ if(!cloudClient||!cloudUser||song.ownerUid!==cloudUser.id)throw new Error('Sesi cloud sudah habis');
+ const {error}=await cloudClient.from('melo_tracks').delete().eq('id',song.cloudId).eq('owner_id',cloudUser.id);
+ if(error)throw error;
+ const paths=[song.cloudPath,song.coverPath].filter(Boolean);
+ if(paths.length){const rm=await cloudClient.storage.from(PRIVATE_BUCKET).remove(paths);if(rm.error)console.warn('Metadata dihapus; storage cleanup gagal:',rm.error)}
+}
+const allowedCloudExtensions=new Set(['mp3','flac','m4a','wav','ogg','oga','opus','aac']);
+const PRIVATE_MAX=50*1024*1024;
+function privateUUID(){
+ if(typeof crypto.randomUUID==='function')return crypto.randomUUID();
+ const b=crypto.getRandomValues(new Uint8Array(16));b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;
+ const h=[...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+ return [h.slice(0,8),h.slice(8,12),h.slice(12,16),h.slice(16,20),h.slice(20)].join('-');
+}
+async function uploadToVault(file,prefilled){
+ if(!cloudClient||!cloudUser)throw new Error('Silakan login dulu');
+ const ext=extOf(file.name);
+ if(!allowedCloudExtensions.has(ext))throw new Error('Format audio tidak didukung: '+file.name);
+ if(file.size>PRIVATE_MAX)throw new Error(file.name+' melebihi 50 MB. Sesuaikan batas storage project atau gunakan upload resumable untuk file besar.');
+ if(file.size===0)throw new Error('File audio kosong.');
+ const uid=cloudUser.id,metadata=prefilled||await readTags(file),fallback=nameMeta(file.name);
+ const key=uid+'/'+privateUUID()+'.'+(ext==='oga'?'ogg':ext);
+ const blob=file.slice(0,file.size,file.type||MIME[ext]||'application/octet-stream');
+ const {error:upErr}=await cloudClient.storage.from(PRIVATE_BUCKET).upload(key,blob,{cacheControl:'3600',contentType:blob.type,upsert:false});
+ if(upErr)throw upErr;
+ let coverPath=null;
+ try{
+  if(metadata.cover?.size){const format=metadata.cover.type.includes('png')?'png':metadata.cover.type.includes('webp')?'webp':'jpg';
+   coverPath=uid+'/covers/'+privateUUID()+'.'+format;
+   const {error:ce}=await cloudClient.storage.from(PRIVATE_BUCKET).upload(coverPath,metadata.cover,{upsert:false,contentType:metadata.cover.type||'image/jpeg'});
+   if(ce)coverPath=null;}
+  const entry={owner_id:uid,title:metadata.title||fallback.title,artist:metadata.artist||fallback.artist||'',album:metadata.album||'',genre:metadata.genre||'',release_year:metadata.year||'',format:ext.toUpperCase(),original_name:file.name,
+   file_path:key,file_size:file.size,duration:Number(metadata.dur)||0,cover_path:coverPath,lyrics:metadata.lyrics||'',is_favorite:!!metadata.fav,play_count:0,listen_seconds:0};
+  const {error:dbErr}=await cloudClient.from('melo_tracks').insert(entry);
+  if(dbErr)throw dbErr;
+ }catch(err){await cloudClient.storage.from(PRIVATE_BUCKET).remove([key,coverPath].filter(Boolean));throw err}
+}
+async function uploadCloudFiles(files){
+ if(!cloudClient||!cloudUser)return openAuthDialog();
+ if(privateBusy)return flash('Upload cloud lain sedang berjalan');
+ const selected=[...files].filter(f=>allowedCloudExtensions.has(extOf(f.name)));
+ if(!selected.length)return flash('Pilih file MP3/FLAC/M4A/WAV/OGG terlebih dahulu',true);
+ privateBusy=true;$('vaultUpload').disabled=true;
+ let ok=0,fail=0,firstErr='';
+ try{for(let i=0;i<selected.length;i++){
+  if(!cloudUser)break;
+  vaultProgress('☁ Mengunggah '+(i+1)+'/'+selected.length+' — '+selected[i].name);
+  try{await uploadToVault(selected[i]);ok++}catch(err){fail++;firstErr=firstErr||err.message;console.error(err)}
+ }
+ }finally{privateBusy=false;vaultProgress('');updateVaultStatus();await refreshPrivateSongs()}
+ flash(ok+' lagu tersimpan di cloud'+(fail?' · '+fail+' gagal: '+firstErr:''),!!fail);
+}
+$('vaultUpload').onclick=()=>cloudUser?$('vaultFiles').click():openAuthDialog();
+$('vaultFiles').onchange=async e=>{const files=[...e.target.files];e.target.value='';await uploadCloudFiles(files)};
+$('vaultSync').onclick=async()=>{
+ if(!cloudUser)return openAuthDialog();
+ const local=songs.filter(s=>s.blob&&s.source!=='private');
+ if(!local.length)return flash('Tidak ada lagu lokal untuk di-backup');
+ if(!confirm('Backup '+local.length+' file lokal ke Private Vault? Lagu tetap tersimpan di perangkat.'))return;
+ if(privateBusy)return;
+ privateBusy=true;let ok=0,fail=0;
+ try{for(let i=0;i<local.length;i++){
+   if(!cloudUser)break;
+   const s=local[i];vaultProgress('☁ Backup '+(i+1)+'/'+local.length+' — '+s.title);
+   const f=new File([s.blob],s.file||s.title+'.mp3',{type:s.blob.type||MIME[extOf(s.file)]||'audio/mpeg'});
+   try{await uploadToVault(f,{title:s.title,artist:s.artist,album:s.album,genre:s.genre,year:s.year,dur:s.dur,lyrics:s.lrc,cover:s.cover,fav:s.fav});ok++}catch(err){fail++;console.error(err)}
+ }
+ }finally{privateBusy=false;vaultProgress('');updateVaultStatus();await refreshPrivateSongs()}
+ flash(ok+' lagu berhasil backup ke vault'+(fail?', '+fail+' gagal (cek batas 50 MB)':''),!!fail);
+};
+async function initVault(){
+ if(!cloudConfigured()||!window.supabase?.createClient){updateVaultStatus();return}
+ try{
+  cloudClient=window.supabase.createClient(cloudSettings.url,cloudSettings.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  cloudClient.auth.onAuthStateChange((event,session)=>{
+    const uid=session?.user?.id||null;
+    if(uid!==cloudUser?.id){clearPrivateSongs();cloudUser=session?.user||null;updateVaultStatus();
+      if(uid)setTimeout(()=>refreshPrivateSongs(),0);
+    }
+    if(event==='PASSWORD_RECOVERY'){
+      setTimeout(async()=>{
+        const password=prompt('Buat password Melo Vault baru (min. 6 karakter):');
+        if(!password||password.length<6)return;
+        const {error}=await cloudClient.auth.updateUser({password});flash(error?'Gagal mengubah password: '+error.message:'Password berhasil diperbarui',!!error);
+      },0);
+    }
+  });
+  const {data,error}=await cloudClient.auth.getSession();if(error)throw error;
+  if(data.session?.user&&data.session.user.id!==cloudUser?.id){cloudUser=data.session.user;updateVaultStatus();await refreshPrivateSongs()}
+  privatePolling=setInterval(()=>{if(cloudUser&&!document.hidden)refreshPrivateSongs()},60000);
+  window.addEventListener('focus',()=>{if(cloudUser)refreshPrivateSongs()});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cloudUser)refreshPrivateSongs()});
+ }catch(e){console.error(e);flash('Supabase gagal terhubung: '+e.message,true)}
+ updateVaultStatus();
+}
+
 /* ---------- Boot: muat dari database ---------- */
 (async()=>{
   db=await openDB();try{navigator.storage&&navigator.storage.persist&&await navigator.storage.persist()}catch(e){}
@@ -395,7 +648,8 @@ $('exportCloud').onclick=async()=>{const tracks=songs.filter(s=>s.blob);if(!trac
   songs=all.sort((a,b)=>a.added-b.added);
   songs.forEach(s=>{const ext=extOf(s.file||'');if(s.blob&&!s.blob.type)s.blob=s.blob.slice(0,s.blob.size,MIME[ext]||'audio/mpeg');
     s.url=s.remoteUrl||(s.blob?URL.createObjectURL(s.blob):'');s.plays=s.plays||0;s.listen=s.listen||0;s.last=s.last||0;s.title=s.title||s.name||'Tanpa judul';s.artist=s.artist||'';s.fmt=s.fmt||ext.toUpperCase()});
-  await loadCloudLibrary();render();info();dbBadge();
+  if(!cloudConfigured())await loadCloudLibrary();render();info();dbBadge();
+  await initVault();
   if(songs.length){let i=0,t=0;try{const l=JSON.parse(localStorage.getItem('melo-last')||'null');if(l){const k=songs.findIndex(s=>s.id===l.id);if(k>=0){i=k;t=l.t||0}}}catch(e){}
     pendSeek=t;load(i,false);if(t)flash('Lanjut dari '+fmt(t))}
 })();
