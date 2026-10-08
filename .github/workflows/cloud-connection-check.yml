@@ -1,0 +1,55 @@
+name: Diagnose Melo Cloud Connection
+on:
+  push:
+    paths:
+      - .github/workflows/cloud-connection-check.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare published config and test public auth endpoint
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+
+          const config = text => {
+            const url = text.match(/\burl:\s*["']([^"']+)["']/)?.[1] || '';
+            const key = text.match(/\bpublishableKey:\s*["']([^"']+)["']/)?.[1] || '';
+            return {url, key};
+          };
+          const local = config(fs.readFileSync('docs/cloud-config.js', 'utf8'));
+          const hash = s => crypto.createHash('sha256').update(s).digest('hex').slice(0, 10);
+          const get = async (url, headers = {}) => {
+            try {
+              const r = await fetch(url, {headers, signal: AbortSignal.timeout(12000), cache:'no-store'});
+              return {status: r.status, body: await r.text()};
+            } catch (e) {
+              return {status: 0, body: String(e.message || e)};
+            }
+          };
+          console.log('Repository key type:', local.key.startsWith('eyJ') ? 'legacy anon JWT' : local.key.startsWith('sb_publishable_') ? 'publishable' : 'unknown');
+          console.log('Repository URL correct:', local.url === 'https://gbnmdxwhobetrbhnosml.supabase.co');
+
+          const base = 'https://devineldrian.github.io/MusicPlayer/';
+          const root = await get(base);
+          console.log('Published root HTTP:', root.status, 'Melo HTML:', root.body.includes('Melo Private Vault'));
+          for (const path of ['docs/cloud-config.js','cloud-config.js']) {
+            const published = await get(base+path);
+            const c = config(published.body);
+            console.log('Published '+path+' HTTP:',published.status, 'project matches:', c.url===local.url, 'key matches:', c.key===local.key, 'key hash:', c.key?hash(c.key):'none');
+            if (published.status===200 && c.url && c.key) {
+              const r=await get(c.url+'/auth/v1/settings', {'apikey':c.key});
+              let detail='';try { const j=JSON.parse(r.body); detail=j.msg||j.message||j.error||j.error_description||''; } catch {}
+              console.log('Published key /auth/v1/settings HTTP:',r.status, 'error:',String(detail).slice(0,100)||'none');
+            }
+          }
+          const health = await get(local.url+'/auth/v1/settings',{'apikey':local.key});
+          let message='';try {const j=JSON.parse(health.body);message=j.msg||j.message||j.error||j.error_description||'';} catch {}
+          console.log('Repository key /auth/v1/settings HTTP:',health.status, 'error:',String(message).slice(0,100)||'none');
+          NODE
