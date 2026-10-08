@@ -52,4 +52,17 @@ jobs:
           const health = await get(local.url+'/auth/v1/settings',{'apikey':local.key});
           let message='';try {const j=JSON.parse(health.body);message=j.msg||j.message||j.error||j.error_description||'';} catch {}
           console.log('Repository key /auth/v1/settings HTTP:',health.status, 'error:',String(message).slice(0,100)||'none');
+
+          const trial = async (label, url, headers, payload) => {
+            try {
+              const r = await fetch(url, {method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(12000)});
+              const raw=await r.text();
+              let data={};try{data=JSON.parse(raw)}catch{}
+              console.log(label,'HTTP:',r.status,'code:',String(data.code||data.error_code||''),'message:',String(data.msg||data.error_description||data.message||data.error||'').slice(0,180));
+            }catch(e){ console.log(label,'network exception:',String(e.message||e).slice(0,180)); }
+          };
+          const header={apikey:local.key};
+          await trial('Signup apikey-only', local.url+'/auth/v1/signup',{...header},{email:'not-an-email',password:'a'});
+          await trial('Signup apikey+bearer',local.url+'/auth/v1/signup',{...header,Authorization:'Bearer '+local.key},{email:'not-an-email',password:'a'});
+          await trial('Password apikey+bearer',local.url+'/auth/v1/token?grant_type=password',{...header,Authorization:'Bearer '+local.key},{email:'not-an-email',password:'a'});
           NODE
