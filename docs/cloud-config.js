@@ -1,6 +1,6 @@
-// Melo Vault web configuration. This is public and safe ONLY for a publishable/anon key.
+// Melo Vault web configuration. Public anon JWT is a temporary auth-compatibility fallback; keep RLS enabled.
 // NEVER paste a service_role key, secret key, API token, or user password here.
 window.MELO_CLOUD_CONFIG = {
   url: "https://gbnmdxwhobetrbhnosml.supabase.co",
-  publishableKey: "sb_publishable_4hlyhbZ2OE-hCs4xgnGmEw_x-pXRqQE"
+  publishableKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdibm1keHdob2JldHJiaG5vc21sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0MzIzNTUsImV4cCI6MjEwNzAwODM1NX0.Hovd7xUlpOVY4KdnriFO-08cAMVFxht--1CW75kQymY"
 };
